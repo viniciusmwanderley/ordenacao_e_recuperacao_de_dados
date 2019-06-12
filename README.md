@@ -23,4 +23,10 @@ Aulas teóricas e práticas durante o curso, com foco na parte prática
 
 ### Aula 01
 
+* Heap Binário
 
+* Heap Máximo e Mínimo
+
+* "MAX-HEAPIFY"
+
+* "BUILD-MAX-HEAP"
