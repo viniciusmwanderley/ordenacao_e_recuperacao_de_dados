@@ -30,3 +30,7 @@ Aulas teóricas e práticas durante o curso, com foco na parte prática
 * "MAX-HEAPIFY"
 
 * "BUILD-MAX-HEAP"
+
+### Aula 02
+
+* Implementação: MAX-HEAPIFY, BUILD-MAX-HEAP
