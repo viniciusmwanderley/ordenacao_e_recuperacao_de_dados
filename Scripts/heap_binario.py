@@ -1,9 +1,8 @@
 
 class BinaryHeap:
     def __init__(self):
-        # self.items = [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]
-        # self.items = [10, 6, 9, 2, 1, 8, 3]
-        self.items = [10, 6, 8, 2, 1, 9, 3]
+        self.items = [10, 6, 8, 2, 1, 9, 3, 4, 5, 21, 34, 56, 76]
+        self.tamanho = len(self.items)
 
     def size(self):
         return len(self.items)
@@ -51,11 +50,11 @@ class BinaryHeap:
         right = self.right(index)
         # print('right:', right, 'left:', left)
 
-        if ((left < self.size()) and ((self.get(left) > self.get(index)))):
+        if ((left < self.tamanho) and ((self.get(left) > self.get(index)))):
             largest = left
         else:
             largest = index
-        if ((right < self.size()) and ((self.get(right) > self.get(largest)))):
+        if ((right < self.tamanho) and ((self.get(right) > self.get(largest)))):
             largest = right
         # print('index:', index, 'left:', left, 'right:', right, 'largest:', largest)
         if (largest != index):
@@ -72,6 +71,15 @@ class BinaryHeap:
             self.max_heapify(indice)
             indice = indice - 1
 
+    def heap_sort(self):
+        self.build_max_heap()
+        indice = self.size() - 1
+        print('indice:', indice)
+        for i in range(self.tamanho - 1, 0, -1):
+            self.swap(0, i)
+            self.tamanho = self.tamanho - 1
+            self.max_heapify(0)
+
 
 bheap = BinaryHeap()
 
@@ -80,6 +88,7 @@ print('insert <data>')
 print('max get')
 print('max extract')
 print('build')
+print('heapsort')
 print('print')
 print('size')
 print('quit')
@@ -98,6 +107,10 @@ while True:
         print('before build:', bheap.items)
         bheap.build_max_heap()
         print('after build', bheap.items)
+    elif operation == 'heapsort':
+        print('before heapsort:', bheap.items)
+        bheap.heap_sort()
+        print('after heapsort:', bheap.items)
     elif operation == 'parent':
         data = int(do[1])
         print(bheap.parent(data))
