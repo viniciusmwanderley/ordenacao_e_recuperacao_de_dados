@@ -34,3 +34,11 @@ Aulas teóricas e práticas durante o curso, com foco na parte prática
 ### Aula 02
 
 * Implementação: MAX-HEAPIFY, BUILD-MAX-HEAP
+
+### Aula 03
+
+* Fila de Prioridade Máxima
+
+### Aula 04
+
+* Teoria dos Grafos
