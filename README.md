@@ -42,3 +42,7 @@ Aulas teóricas e práticas durante o curso, com foco na parte prática
 ### Aula 04
 
 * Teoria dos Grafos
+
+### Aula 05
+
+* Algoritmo de Dijkstra
