@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Graph:
 
     def __init__(self, directed=False):
@@ -12,9 +15,6 @@ class Graph:
 
     def vertices(self):
         return self._outgoing.keys()
-
-    def gambs(self):
-        return self._outgoing.items()  # FAMOSA GAMBIARRA
 
     def edge_count(self):
         total = sum(len(self._outgoing[v]) for v in self._outgoing)
@@ -210,79 +210,104 @@ class AdaptableHeapPriorityQueue(HeapPriorityQueue):
 
 
 def shortest_path_lenghts(g, src):
-    d = {}								# d[v] is upper bound s to v
-    cloud = {}							# map reachable v to its d[v] value
+
+    d = {}                              # d[v] is upper bound s to v
+    cloud = {}                          # map reachable v to its d[v] value
     pq = AdaptableHeapPriorityQueue()   # vertex v will have key d[v]
-    pqlocator = {}						# map from vertex to its pq locator
+    pqlocator = {}                      # map from vertex to its pq locator
 
     for v in g.vertices():
         if v is src:
             d[v] = 0
         else:
-            d[v] = float('inf')			# systax for positive  infinity
+            d[v] = float('inf')         # systax for positive  infinity
         pqlocator[v] = pq.add(d[v], v)  # save locator for future updates
 
     while not pq.is_empty():
         key, u = pq.remove_min()
-        cloud[u] = key
-        del pqlocator[u]
-        for e in g.incident_edges(u):
+        cloud[u] = key                  # its correct d[u] value
+        del pqlocator[u]                # u is no longer in pq
+        for e in g.incident_edges(u):   # outgoing edges (u,v)
             v = e.opposite(u)
             if v not in cloud:
+                # perform relaxation step on edge (u,v)
                 wgt = e.element()
-                if d[u] + wgt < d[v]:
-                    d[v] = d[u] + wgt
-                    pq.update(pqlocator[v], d[v], v)
+                if d[u] + wgt < d[v]:                   # better path to v?
+                    d[v] = d[u] + wgt                   # update the distance
+                    pq.update(pqlocator[v], d[v], v)    # update the pq entry
 
-    return cloud
+    return cloud                        # only includes reachable vertices
 
 
 def shortest_path_tree(g, s, d):
 
+    gambs = {}
     tree = {}
     for v in d:
         if v is not s:
-            for e in g.incident_edges(v, False):
+            for e in g.incident_edges(v, False):    # consider INCOMING edges
                 u = e.opposite(v)
                 wgt = e.element()
                 if d[v] == d[u] + wgt:
-                    tree[v] = e
+                    tree[v] = e             # edg e is used to reach v
+                    gambs[v] = (e.endpoints(), e.element())
+    print(gambs)                            # try gambs to show more clear the path
     return tree
 
 
-# vertices = 5
-# for i in range(vertices):
-#     g.insert_vertex()
+# ----------------------------------------------
+
+lines = []
+
+with open('dij10.txt', 'r') as r:
+    for line in r:
+        lines.append(line)
+        print(line)
+
+n_vertices = int(lines[0])  # num of vertices
+
+matrix_of_vertices = np.zeros((n_vertices, n_vertices))  # matrix of vertices with zeros
 
 
-g = Graph(directed=True)
+'''TODO: logic to process adjacency matrix'''
 
-a = g.insert_vertex()
-b = g.insert_vertex()
-c = g.insert_vertex()
-d = g.insert_vertex()
-e = g.insert_vertex()
-
-g.insert_edge(a, b, 10)
-g.insert_edge(a, c, 5)
-g.insert_edge(b, c, 2)
-g.insert_edge(b, d, 1)
-g.insert_edge(c, b, 3)
-g.insert_edge(c, d, 9)
-g.insert_edge(c, e, 2)
-g.insert_edge(d, e, 4)
-g.insert_edge(e, d, 6)
-g.insert_edge(e, a, 7)
+# -----------------------------------------------
 
 
-# print(a._element)
-# print(b._element)
-# print(c._element)
-# print(d._element)
-# print(e._element)
+g = Graph(directed=True)    # initialize graph
 
-print('path:', shortest_path_lenghts(g, a))
+# number_of_vertices = 5
+# test = []
+# for i in range(number_of_vertices):
+#     test.append(g.insert_vertex())
+# print(len(test))
+# print(test[0].element())
 
+# -------------------------------------------- #
+
+# Manual work (works)
+
+# a = g.insert_vertex()
+# b = g.insert_vertex()
+# c = g.insert_vertex()
+# d = g.insert_vertex()
+# e = g.insert_vertex()
+
+# g.insert_edge(a, b, 10)
+# g.insert_edge(a, c, 5)
+# g.insert_edge(b, c, 2)
+# g.insert_edge(b, d, 1)
+# g.insert_edge(c, b, 3)
+# g.insert_edge(c, d, 9)
+# g.insert_edge(c, e, 2)
+# g.insert_edge(d, e, 4)
+# g.insert_edge(e, d, 6)
+# g.insert_edge(e, a, 7)
+
+
+# path = shortest_path_lenghts(g, a)      '''last element has length of shortest path'''
+
+# tree = shortest_path_tree(g, a, path)   # return tree of elements from shortest path
 
 print('Number of Edges:', g.edge_count())
 print('Number of Vertex:', g.vertex_count())
