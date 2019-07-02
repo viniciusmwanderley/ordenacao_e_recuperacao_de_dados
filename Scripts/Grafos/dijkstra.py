@@ -257,31 +257,70 @@ def shortest_path_tree(g, s, d):
 
 # ----------------------------------------------
 
-lines = []
+vertices = []
 
 with open('dij10.txt', 'r') as r:
     for line in r:
-        lines.append(line)
-        print(line)
+        lin = line.replace('\n', ' ')
+        # print(lin.split(' '))
+        for i in lin.split(' '):
+            if i != '':
+                vertices.append(int(i))
 
-n_vertices = int(lines[0])  # num of vertices
+
+n_vertices = vertices.pop(0)
+print('Number of Vertices from dij10.txt:', n_vertices)
 
 matrix_of_vertices = np.zeros((n_vertices, n_vertices))  # matrix of vertices with zeros
+# print(vertices)
+
+# matrix_of_vertices[0][0] = 123
+# print(matrix_of_vertices)
 
 
-'''TODO: logic to process adjacency matrix'''
+x = 0
+for i in range(n_vertices - 1, -1, -1):
+    # print('i', i)
+    for j in range(0, i + 1, +1):
+        print('i,j', i, j)
+
+        if j == i:
+            matrix_of_vertices[i][i] = 0
+            print('i igual j', i, j)
+            continue
+
+        matrix_of_vertices[i][j] = vertices[x]
+        matrix_of_vertices[j][i] = vertices[x]
+
+        print(vertices[x])
+
+        x = x + 1
+
+print(matrix_of_vertices)
+
+# print(vertices[0])
+# print(vertices[1])
+# print(vertices[2])
+# print(vertices[3])
+# print(vertices[4])
+# print(vertices[5])
+# print(vertices[6])
+# print(vertices[7])
+# print(vertices[8])
+
+
+# TODO: logic to process adjacency matrix
 
 # -----------------------------------------------
 
 
 g = Graph(directed=True)    # initialize graph
 
-# number_of_vertices = 5
-# test = []
-# for i in range(number_of_vertices):
-#     test.append(g.insert_vertex())
-# print(len(test))
-# print(test[0].element())
+vert = []
+for i in range(n_vertices):
+    vert.append(g.insert_vertex())
+# print(len(vert))
+# print(vert[0].element())
 
 # -------------------------------------------- #
 
@@ -293,21 +332,29 @@ g = Graph(directed=True)    # initialize graph
 # d = g.insert_vertex()
 # e = g.insert_vertex()
 
-# g.insert_edge(a, b, 10)
-# g.insert_edge(a, c, 5)
-# g.insert_edge(b, c, 2)
-# g.insert_edge(b, d, 1)
-# g.insert_edge(c, b, 3)
-# g.insert_edge(c, d, 9)
-# g.insert_edge(c, e, 2)
-# g.insert_edge(d, e, 4)
-# g.insert_edge(e, d, 6)
-# g.insert_edge(e, a, 7)
+for i in range(n_vertices):
+    for j in range(n_vertices):
+        if j == i:
+            continue
+        else:
+            g.insert_edge(vert[i], vert[j], matrix_of_vertices[i, j])
+
+    # g.insert_edge(a, b, 10)
+    # g.insert_edge(a, c, 5)
+    # g.insert_edge(b, c, 2)
+    # g.insert_edge(b, d, 1)
+    # g.insert_edge(c, b, 3)
+    # g.insert_edge(c, d, 9)
+    # g.insert_edge(c, e, 2)
+    # g.insert_edge(d, e, 4)
+    # g.insert_edge(e, d, 6)
+    # g.insert_edge(e, a, 7)
+
+path = shortest_path_lenghts(g, vert[0])  # '''last element has length of shortest path'''
+print(path)
 
 
-# path = shortest_path_lenghts(g, a)      '''last element has length of shortest path'''
-
-# tree = shortest_path_tree(g, a, path)   # return tree of elements from shortest path
+tree = shortest_path_tree(g, vert[0], path)   # return tree of elements from shortest path
 
 print('Number of Edges:', g.edge_count())
 print('Number of Vertex:', g.vertex_count())
