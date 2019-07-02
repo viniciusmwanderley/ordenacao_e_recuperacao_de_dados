@@ -232,9 +232,11 @@ def shortest_path_lenghts(g, src):
             if v not in cloud:
                 # perform relaxation step on edge (u,v)
                 wgt = e.element()
-                if d[u] + wgt < d[v]:                   # better path to v?
-                    d[v] = d[u] + wgt                   # update the distance
-                    pq.update(pqlocator[v], d[v], v)    # update the pq entry
+                if d[u] + wgt < d[v]:                       # better path to v?
+                    d[v] = d[u] + wgt                       # update the distance
+                    pq.update(pqlocator[v], d[v], v)        # update the pq entry
+                    if v.element() == len(g._outgoing) - 5:
+                        print('indice', v.element(), 'distancia', d[v])
 
     return cloud                        # only includes reachable vertices
 
@@ -261,12 +263,14 @@ vertices = []
 
 with open('dij10.txt', 'r') as r:
     for line in r:
-        lin = line.replace('\n', ' ')
-        lin = lin.replace('\t', ' ')
+        lin = line.replace('\t', ' ')
+        lin = lin.replace('\n', ' ')
         # print(lin.split(' '))
         for i in lin.split(' '):
             if i != '':
                 vertices.append(int(i))
+
+# print(vertices)
 
 
 n_vertices = vertices.pop(0)                                # extract number of vertices
@@ -304,7 +308,7 @@ g = Graph(directed=True)    # initialize graph
 
 vert = []
 for i in range(n_vertices):
-    vert.append(g.insert_vertex())
+    vert.append(g.insert_vertex(x=i))
 
 # -------------------------------------------- #
 
@@ -319,9 +323,8 @@ for i in range(n_vertices):
 path = shortest_path_lenghts(g, vert[0])  # '''last element has length of shortest path'''
 print(path)
 
-
 # tree = shortest_path_tree(g, vert[0], path)   # return tree of elements from shortest path
 
 print('Number of Edges:', g.edge_count())
 print('Number of Vertex:', g.vertex_count())
-print('Keys of Dictionary:', g.vertices())
+# print('Keys of Dictionary:', g.vertices())
