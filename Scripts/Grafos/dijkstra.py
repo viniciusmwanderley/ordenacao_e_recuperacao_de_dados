@@ -225,7 +225,7 @@ def shortest_path_lenghts(g, src):
 
     while not pq.is_empty():
         key, u = pq.remove_min()
-        cloud[u] = key                  # its correct d[u] value
+        cloud[u.element()] = key                  # its correct d[u] value
         del pqlocator[u]                # u is no longer in pq
         for e in g.incident_edges(u):   # outgoing edges (u,v)
             v = e.opposite(u)
@@ -261,7 +261,7 @@ def shortest_path_tree(g, s, d):
 
 vertices = []
 
-with open('dij10.txt', 'r') as r:
+with open('dij50.txt', 'r') as r:
     for line in r:
         lin = line.replace('\t', ' ')
         lin = lin.replace('\n', ' ')
