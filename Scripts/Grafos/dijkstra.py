@@ -235,96 +235,94 @@ def shortest_path_lenghts(g, src):
                 if d[u] + wgt < d[v]:                       # better path to v?
                     d[v] = d[u] + wgt                       # update the distance
                     pq.update(pqlocator[v], d[v], v)        # update the pq entry
-                    if v.element() == len(g._outgoing) - 5:
-                        print('indice', v.element(), 'distancia', d[v])
+                    # if v.element() == len(g._outgoing) - 1:
+                    #     print('indice', v.element(), 'distancia', d[v])
 
     return cloud                        # only includes reachable vertices
 
 
-def shortest_path_tree(g, s, d):
+def shortest_path(filename):
 
-    gambs = {}
-    tree = {}
-    for v in d:
-        if v is not s:
-            for e in g.incident_edges(v, False):    # consider INCOMING edges
-                u = e.opposite(v)
-                wgt = e.element()
-                if d[v] == d[u] + wgt:
-                    tree[v] = e             # edg e is used to reach v
-                    gambs[v] = (e.endpoints(), e.element())
-    print(gambs)                            # try gambs to show more clear the path
-    return tree
+    values = get_values_from_matrix(filename)
 
+    n_vertices, matrix = fill_matrix_with_values(values)
 
-# --------------------------------------------------------------------------------------- #
+    graph = Graph(directed=True)                                       # initialize graph
 
-vertices = []
+    vert = initialize_vertices_and_edges(graph, matrix, n_vertices)
 
-with open('dij50.txt', 'r') as r:
-    for line in r:
-        lin = line.replace('\t', ' ')
-        lin = lin.replace('\n', ' ')
-        # print(lin.split(' '))
-        for i in lin.split(' '):
-            if i != '':
-                vertices.append(int(i))
+    cloud = shortest_path_lenghts(graph, vert[0])
+    print(filename, ' -->  Shortest path from origin to vertice', (n_vertices - 1), ':', cloud[n_vertices - 1])
 
-# print(vertices)
+    # print('Number of Edges:', graph.edge_count())
+    # print('Number of Vertex:', graph.vertex_count())
+    # print('Keys of Dictionary:', g.vertices())
 
 
-n_vertices = vertices.pop(0)                                # extract number of vertices
-print('Number of Vertices from dij10.txt:', n_vertices)
+def get_values_from_matrix(filename):
 
-matrix_of_vertices = np.zeros((n_vertices, n_vertices))     # create matrix of vertices with zeros
+    values = []
 
+    with open(filename, 'r') as r:
+        for line in r:
+            line = line.replace('\t', ' ')
+            line = line.replace('\n', ' ')
+            for i in line.split(' '):
+                if i != '':
+                    values.append(int(i))
 
-# Fill matrix with entry .txt
-x = 0
-for i in range(0, n_vertices, +1):
-
-    for j in range(i, n_vertices, +1):
-
-        if j == i:
-            matrix_of_vertices[i][i] = 0
-            # print('i igual j', i, j)
-            continue
-
-        matrix_of_vertices[i][j] = vertices[x]
-        matrix_of_vertices[j][i] = vertices[x]
-
-        # print(vertices[x])
-
-        x = x + 1
-
-        # print('i,j', i, j)
-
-print(matrix_of_vertices)
+    return values
 
 
-# TODO: logic to process adjacency matrix
+def fill_matrix_with_values(values):
 
-g = Graph(directed=True)    # initialize graph
+    n_vertices = values.pop(0)                                  # extract number of vertices
+    matrix_of_vertices = np.zeros((n_vertices, n_vertices))     # create matrix with zeros
 
-vert = []
-for i in range(n_vertices):
-    vert.append(g.insert_vertex(x=i))
+    # Fill matrix with entry .txt
+    x = 0
+    for i in range(0, n_vertices, +1):
 
-# -------------------------------------------- #
+        for j in range(i, n_vertices, +1):
 
-for i in range(n_vertices):
-    for j in range(n_vertices):
-        if j == i:
-            continue
-        else:
-            g.insert_edge(vert[i], vert[j], matrix_of_vertices[i, j])
+            if j == i:
+                matrix_of_vertices[i][i] = 0
+                continue
+
+            matrix_of_vertices[i][j] = values[x]
+            matrix_of_vertices[j][i] = values[x]
+
+            x = x + 1
+
+    return n_vertices, matrix_of_vertices
 
 
-path = shortest_path_lenghts(g, vert[0])  # '''last element has length of shortest path'''
-print(path)
+def initialize_vertices_and_edges(graph, matrix, n_vertices):
 
-# tree = shortest_path_tree(g, vert[0], path)   # return tree of elements from shortest path
+    vert = []
+    for i in range(n_vertices):
+        vert.append(graph.insert_vertex(x=i))
 
-print('Number of Edges:', g.edge_count())
-print('Number of Vertex:', g.vertex_count())
-# print('Keys of Dictionary:', g.vertices())
+    for i in range(n_vertices):
+        for j in range(n_vertices):
+            if j == i:
+                continue
+            else:
+                graph.insert_edge(vert[i], vert[j], matrix[i, j])
+
+    return vert
+
+
+def main():
+
+    shortest_path('dij10.txt')
+
+    shortest_path('dij20.txt')
+
+    shortest_path('dij40.txt')
+
+    shortest_path('dij50.txt')
+
+
+if __name__ == '__main__':
+    main()
