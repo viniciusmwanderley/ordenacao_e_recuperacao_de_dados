@@ -46,3 +46,7 @@ Aulas teóricas e práticas durante o curso, com foco na parte prática
 ### Aula 05
 
 * Algoritmo de Dijkstra
+
+### Aula 06
+
+* Algoritmo de Huffman
