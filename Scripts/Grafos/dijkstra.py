@@ -54,12 +54,17 @@ class Graph:
 
         def __init__(self, x):
             self._element = x
+            self.pred = []
 
         def element(self):
             return self._element
 
         def __hash__(self):
             return hash(id(self))
+
+        def att_pred(self, vector):
+            self.pred.clear()
+            self.pred = [vector.pred, vector.element()]
 
     class Edge:
 
@@ -210,7 +215,7 @@ class AdaptableHeapPriorityQueue(HeapPriorityQueue):
 
 
 def shortest_path_lenghts(g, src):
-
+    vert = {}
     d = {}                              # d[v] is upper bound s to v
     cloud = {}                          # map reachable v to its d[v] value
     pq = AdaptableHeapPriorityQueue()   # vertex v will have key d[v]
@@ -225,20 +230,34 @@ def shortest_path_lenghts(g, src):
 
     while not pq.is_empty():
         key, u = pq.remove_min()
-        cloud[u.element()] = key                  # its correct d[u] value
+        cloud[u.element()] = key        # its correct d[u] value
+        vert[u.element()] = u
         del pqlocator[u]                # u is no longer in pq
         for e in g.incident_edges(u):   # outgoing edges (u,v)
             v = e.opposite(u)
+
             if v not in cloud:
                 # perform relaxation step on edge (u,v)
                 wgt = e.element()
                 if d[u] + wgt < d[v]:                       # better path to v?
                     d[v] = d[u] + wgt                       # update the distance
+                    v.att_pred(u)                           # update the pred
                     pq.update(pqlocator[v], d[v], v)        # update the pq entry
-                    # if v.element() == len(g._outgoing) - 1:
-                    #     print('indice', v.element(), 'distancia', d[v])
 
-    return cloud                        # only includes reachable vertices
+    return cloud, vert                     # only includes reachable vertices
+
+
+def shortest_path_tree(g, s, d):
+    tree = {}
+    for v in d:
+        if v is not s:
+            for e in g.incident_edges(v, False):
+                u = e.opposite(v)
+                wgt = e.element()
+                if d[v] == d[u] + wgt:
+                    print(e)
+                    tree[v] = e
+    return tree
 
 
 def shortest_path(filename):
@@ -251,12 +270,10 @@ def shortest_path(filename):
 
     vert = initialize_vertices_and_edges(graph, matrix, n_vertices)
 
-    cloud = shortest_path_lenghts(graph, vert[0])
-    print(filename, ' -->  Shortest path from origin to vertice', (n_vertices - 1), ':', cloud[n_vertices - 1])
+    cloud, d = shortest_path_lenghts(graph, vert[0])
+    #print(filename, ' -->  Shortest path from origin to vertice', (n_vertices - 1), ':', cloud)
 
-    # print('Number of Edges:', graph.edge_count())
-    # print('Number of Vertex:', graph.vertex_count())
-    # print('Keys of Dictionary:', g.vertices())
+    print(n_vertices - 1, cloud[n_vertices - 1], d[n_vertices - 1].pred)
 
 
 def get_values_from_matrix(filename):
