@@ -271,9 +271,24 @@ def shortest_path(filename):
     vert = initialize_vertices_and_edges(graph, matrix, n_vertices)
 
     cloud, d = shortest_path_lenghts(graph, vert[0])
-    #print(filename, ' -->  Shortest path from origin to vertice', (n_vertices - 1), ':', cloud)
+    # print(filename, ' -->  Shortest path from origin to vertice', (n_vertices - 1), ':', cloud)
 
-    print(n_vertices - 1, cloud[n_vertices - 1], d[n_vertices - 1].pred)
+    # print(n_vertices - 1, cloud[n_vertices - 1], d[n_vertices - 1].pred)
+    # print(len(d[n_vertices - 1].pred), d[n_vertices - 1].pred.pop(), len(d[n_vertices - 1].pred.pop()))
+
+    result = []
+    tam = len(d[n_vertices - 1].pred)
+    result = remove_empty_lists(d[n_vertices - 1].pred)
+
+    # result.reverse()
+    result.append(n_vertices - 1)
+    result = " ".join(str(x) for x in result)
+    result = result.replace("[", "")
+    result = result.replace("]", "")
+    result = result.replace(",", "")
+
+    print(filename.replace(".txt", ""), '> Value of Shortest Path from Origin to Vertice', (n_vertices - 1), ':', cloud[n_vertices - 1])
+    print('Path to Vertice', (n_vertices - 1), '|           ', result.replace(" ", " --> "))
 
 
 def get_values_from_matrix(filename):
@@ -330,6 +345,39 @@ def initialize_vertices_and_edges(graph, matrix, n_vertices):
     return vert
 
 
+def remove_empty_lists(l):
+    keep_going = True
+    prev_l = l
+    while keep_going:
+        # call remover on the list
+        new_l = remover(prev_l)
+        # are they identical objects?
+        if new_l == prev_l:
+            keep_going = False
+        # set prev to new
+        prev_l = new_l
+    # return the result
+    return new_l
+
+
+# function
+def remover(l):
+    # new list
+    newlist = []
+    # loop over elements
+    for i in l:
+        # pdb.set_trace()
+        # is element a non-empty list? then call self on it
+        if isinstance(i, list) and len(i) != 0:
+            newlist.append(remover(i))
+        # if not a list
+        if not isinstance(i, list):
+            newlist.append(i)
+
+    # return newlist
+    return newlist
+
+
 def main():
 
     shortest_path('dij10.txt')
@@ -343,3 +391,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# meta function
