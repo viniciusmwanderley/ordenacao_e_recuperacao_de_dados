@@ -247,19 +247,6 @@ def shortest_path_lenghts(g, src):
     return cloud, vert                     # only includes reachable vertices
 
 
-def shortest_path_tree(g, s, d):
-    tree = {}
-    for v in d:
-        if v is not s:
-            for e in g.incident_edges(v, False):
-                u = e.opposite(v)
-                wgt = e.element()
-                if d[v] == d[u] + wgt:
-                    print(e)
-                    tree[v] = e
-    return tree
-
-
 def shortest_path(filename):
 
     values = get_values_from_matrix(filename)
@@ -271,16 +258,10 @@ def shortest_path(filename):
     vert = initialize_vertices_and_edges(graph, matrix, n_vertices)
 
     cloud, d = shortest_path_lenghts(graph, vert[0])
-    # print(filename, ' -->  Shortest path from origin to vertice', (n_vertices - 1), ':', cloud)
-
-    # print(n_vertices - 1, cloud[n_vertices - 1], d[n_vertices - 1].pred)
-    # print(len(d[n_vertices - 1].pred), d[n_vertices - 1].pred.pop(), len(d[n_vertices - 1].pred.pop()))
 
     result = []
-    tam = len(d[n_vertices - 1].pred)
     result = remove_empty_lists(d[n_vertices - 1].pred)
 
-    # result.reverse()
     result.append(n_vertices - 1)
     result = " ".join(str(x) for x in result)
     result = result.replace("[", "")
