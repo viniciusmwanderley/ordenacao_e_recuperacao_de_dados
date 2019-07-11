@@ -3,12 +3,9 @@ import numpy as np
 
 class Graph:
 
-    def __init__(self, directed=False):
+    def __init__(self):
         self._outgoing = {}
-        self._incoming = {} if directed else self._outgoing
-
-    def is_directed(self):
-        return self._incoming is not self._outgoing
+        self._incoming = {}
 
     def vertex_count(self):
         return len(self._outgoing)
@@ -17,8 +14,8 @@ class Graph:
         return self._outgoing.keys()
 
     def edge_count(self):
-        total = sum(len(self._outgoing[v]) for v in self._outgoing)
-        return total if self.is_directed() else total // 2
+        total = sum(len(self._outgoing[vertice]) for vertice in self._outgoing)
+        return total
 
     def edges(self):
         result = set()
@@ -26,73 +23,89 @@ class Graph:
             result.update(secondary_map.values())
         return result
 
-    def get_edge(self, u, v):
-        return self._outgoing[u].get(v)
+    def get_edge(self, origin, destination):
+        return self._outgoing[origin].get(destination)
 
-    def degree(self, v, _outgoing=True):
-        adj = self._outgoing if _outgoing else self._incoming
-        return len(adj[v])
-
-    def incident_edges(self, v, outgoing=True):
+    def incident_edges(self, vertice, outgoing=True):
         adj = self._outgoing if outgoing else self._incoming
-        for edge in adj[v].values():
+        for edge in adj[vertice].values():
             yield edge
 
-    def insert_vertex(self, x=None):  # x=None
-        v = self.Vertex(x)
-        self._outgoing[v] = {}
-        if self.is_directed():
-            self._incoming[v] = {}
-        return v
+    def insert_vertex(self, index, value=None):  # x=None
+        vertice = self.Vertex(index)
+        self._outgoing[vertice] = {}
+        self._incoming[vertice] = {}
+        return vertice
 
-    def insert_edge(self, u, v, x=None):  # x=None
-        e = self.Edge(u, v, x)
-        self._outgoing[u][v] = e
-        self._incoming[v][u] = e
+    def insert_edge(self, u, v, x=None):  # edge = (u,v)
+        edge = self.Edge(u, v, x)
+        self._outgoing[u][v] = edge
+        self._incoming[v][u] = edge
 
     class Vertex:
 
-        def __init__(self, x):
-            self._element = x
-            self.pred = []
+        def __init__(self, index, value=None):
+            self._value = value
+            self._index = index
+            self._predecessor = None
 
-        def element(self):
-            return self._element
+        def get_value(self):
+            return self._value
 
-        def __hash__(self):
-            return hash(id(self))
+        def set_value(self, value):
+            self._value = value
 
-        def att_pred(self, vector):
-            self.pred.clear()
-            self.pred = [vector.pred, vector.element()]
+        def get_index(self):
+            return self._index
+
+        def set_index(self, index):
+            self._index = index
+
+        def get_predecessor(self):
+            return self._predecessor
+
+        def set_predecessor(self, predecessor):
+            self._predecessor = predecessor
 
     class Edge:
 
-        def __init__(self, u, v, x):
-            self._origin = u
-            self._destination = v
-            self._element = x
+        def __init__(self, origin, destination, distance):
+            self._origin = origin
+            self._destination = destination
+            self._distance = distance
+
+        def get_distance(self):
+            return self._distance
+
+        def set_distance(self, distance):
+            self._distance = distance
+
+        def get_origin(self):
+            return self._origin
+
+        def set_origin(self, origin):
+            self._origin = origin
+
+        def get_destination(self):
+            return self._destination
+
+        def set_destination(self, destination):
+            self._destination = destination
 
         def endpoints(self):
             return (self._origin, self._destination)
 
-        def opposite(self, v):
-            return self._destination if v is self._origin else self._origin
-
-        def element(self):
-            return self._element
-
-        def __hash__(self):
-            return hash((self._origin, self._destination))
+        def opposite(self, vertice):
+            return self._destination if vertice is self._origin else self._origin
 
 
 class PriorityQueueBase:
 
     class _Item:
 
-        def __init__(self, k, v):
-            self._key = k
-            self._value = v
+        def __init__(self, key, value):
+            self._key = key
+            self._value = value
 
         def __It__(self, other):
             return self._key < other._key
@@ -123,10 +136,6 @@ class HeapPriorityQueue(PriorityQueueBase):
 
     def _upheap(self, j):
         parent = self._parent(j)
-        # print('j', j)
-        # print('parent', parent)
-        # print('data[j] key', self._data[j]._key)
-        # print('data[parent]', self._data[parent]._key)
         if j > 0 and self._data[j]._key < self._data[parent]._key:
             self._swap(j, parent)
             self._upheap(parent)
@@ -170,11 +179,11 @@ class HeapPriorityQueue(PriorityQueueBase):
 
 class AdaptableHeapPriorityQueue(HeapPriorityQueue):
 
-    class Locator(HeapPriorityQueue._Item):
+    class Item(HeapPriorityQueue._Item):
 
-        def __init__(self, k, v, j):
-            super().__init__(k, v)
-            self._index = j
+        def __init__(self, key, value, index):
+            super().__init__(key, value)
+            self._index = index
 
     def _swap(self, i, j):
         super()._swap(i, j)
@@ -188,22 +197,22 @@ class AdaptableHeapPriorityQueue(HeapPriorityQueue):
             self._downheap(j)
 
     def add(self, key, value):
-        token = self.Locator(key, value, len(self._data))
+        token = self.Item(key, value, len(self._data))
         self._data.append(token)
         self._upheap(len(self._data) - 1)
         return token
 
-    def update(self, loc, newkey, newval):
-        j = loc._index
-        if not (0 <= j < len(self) and self._data[j] is loc):
+    def update(self, item, newkey, newval):
+        j = item._index
+        if not (0 <= j < len(self) and self._data[j] is item):
             raise ValueError('Invalid Locator')
-        loc._key = newkey
-        loc._value = newval
+        item._key = newkey
+        item._value = newval
         self._bubble(j)
 
-    def remove(self, loc):
-        j = loc._index
-        if not (0 <= j < len(self) and self._data[j] is loc):
+    def remove(self, item):
+        j = item._index
+        if not (0 <= j < len(self) and self._data[j] is item):
             raise ValueError('Invalid Locator')
         if j == len(self) - 1:
             self._data.pop()
@@ -211,65 +220,7 @@ class AdaptableHeapPriorityQueue(HeapPriorityQueue):
             self._swap(j, len(self) - 1)
             self._data.pop()
             self._bubble(j)
-        return (loc._key, loc._value)
-
-
-def shortest_path_lenghts(g, src):
-    vert = {}
-    d = {}                              # d[v] is upper bound s to v
-    cloud = {}                          # map reachable v to its d[v] value
-    pq = AdaptableHeapPriorityQueue()   # vertex v will have key d[v]
-    pqlocator = {}                      # map from vertex to its pq locator
-
-    for v in g.vertices():
-        if v is src:
-            d[v] = 0
-        else:
-            d[v] = float('inf')         # systax for positive  infinity
-        pqlocator[v] = pq.add(d[v], v)  # save locator for future updates
-
-    while not pq.is_empty():
-        key, u = pq.remove_min()
-        cloud[u.element()] = key        # its correct d[u] value
-        vert[u.element()] = u
-        del pqlocator[u]                # u is no longer in pq
-        for e in g.incident_edges(u):   # outgoing edges (u,v)
-            v = e.opposite(u)
-
-            if v not in cloud:
-                # perform relaxation step on edge (u,v)
-                wgt = e.element()
-                if d[u] + wgt < d[v]:                       # better path to v?
-                    d[v] = d[u] + wgt                       # update the distance
-                    v.att_pred(u)                           # update the pred
-                    pq.update(pqlocator[v], d[v], v)        # update the pq entry
-
-    return cloud, vert                     # only includes reachable vertices
-
-
-def shortest_path(filename):
-
-    values = get_values_from_matrix(filename)
-
-    n_vertices, matrix = fill_matrix_with_values(values)
-
-    graph = Graph(directed=True)                                       # initialize graph
-
-    vert = initialize_vertices_and_edges(graph, matrix, n_vertices)
-
-    cloud, d = shortest_path_lenghts(graph, vert[0])
-
-    result = []
-    result = remove_empty_lists(d[n_vertices - 1].pred)
-
-    result.append(n_vertices - 1)
-    result = " ".join(str(x) for x in result)
-    result = result.replace("[", "")
-    result = result.replace("]", "")
-    result = result.replace(",", "")
-
-    print(filename.replace(".txt", ""), '> Value of Shortest Path from Origin to Vertice', (n_vertices - 1), ':', cloud[n_vertices - 1])
-    print('Path to Vertice', (n_vertices - 1), '|           ', result.replace(" ", " --> "))
+        return (item._key, item._value)
 
 
 def get_values_from_matrix(filename):
@@ -314,7 +265,7 @@ def initialize_vertices_and_edges(graph, matrix, n_vertices):
 
     vert = []
     for i in range(n_vertices):
-        vert.append(graph.insert_vertex(x=i))
+        vert.append(graph.insert_vertex(index=i))
 
     for i in range(n_vertices):
         for j in range(n_vertices):
@@ -326,37 +277,66 @@ def initialize_vertices_and_edges(graph, matrix, n_vertices):
     return vert
 
 
-def remove_empty_lists(l):
-    keep_going = True
-    prev_l = l
-    while keep_going:
-        # call remover on the list
-        new_l = remover(prev_l)
-        # are they identical objects?
-        if new_l == prev_l:
-            keep_going = False
-        # set prev to new
-        prev_l = new_l
-    # return the result
-    return new_l
+def shortest_path_lenghts(graph, initial_vertice):
+    distance = {}                       # distance[v] is upper bound s to v
+    cloud = {}                          # map reachable vertice to its distance[vertice] value
+    pq = AdaptableHeapPriorityQueue()   # vertex vertice will have key distance[vertice]
+    pq_item = {}                        # map from vertex to its pq item
+    vertices = {}
+
+    for vertice in graph.vertices():
+        if vertice is initial_vertice:
+            distance[vertice] = 0
+        else:
+            distance[vertice] = float('inf')                    # systax for positive  infinity
+        pq_item[vertice] = pq.add(distance[vertice], vertice)   # save item for future updates
+
+    while not pq.is_empty():
+        key, u = pq.remove_min()
+        cloud[u.get_index()] = key              # its correct d[u] value
+        vertices[u.get_index()] = u
+        del pq_item[u]                          # u is no longer in pq
+        for edge in graph.incident_edges(u):    # outgoing edges (u,v)
+            v = edge.opposite(u)
+            if v not in cloud:
+                # perform relaxation step on edge (u,v)
+                edge_distance = edge.get_distance()
+                if distance[u] + edge_distance < distance[v]:       # better path to v?
+                    distance[v] = distance[u] + edge_distance       # update the distance
+                    v.set_predecessor(u.get_index())
+                    # print(v.get_index(), v.get_predecessor(), u.get_index())                          # update the pred
+                    pq.update(pq_item[v], distance[v], v)           # update the pq entry
+
+    return cloud, vertices                                              # only includes reachable vertices
 
 
-# function
-def remover(l):
-    # new list
-    newlist = []
-    # loop over elements
-    for i in l:
-        # pdb.set_trace()
-        # is element a non-empty list? then call self on it
-        if isinstance(i, list) and len(i) != 0:
-            newlist.append(remover(i))
-        # if not a list
-        if not isinstance(i, list):
-            newlist.append(i)
+def predecessor_list(vertices):
+    i = len(vertices) - 1
+    pilha = []
+    pilha.append(vertices[i].get_index())
+    while vertices[i].get_index() != 0:
+        pilha.append(vertices[i].get_predecessor())
+        i = vertices[i].get_predecessor()
 
-    # return newlist
-    return newlist
+    pilha.reverse()
+
+    return pilha
+
+
+def shortest_path(filename):
+
+    values = get_values_from_matrix(filename)
+
+    n_vertices, matrix = fill_matrix_with_values(values)
+
+    graph = Graph()                                       # initialize graph
+
+    vert = initialize_vertices_and_edges(graph, matrix, n_vertices)
+
+    cloud, vertices = shortest_path_lenghts(graph, vert[0])
+
+    print(filename, 'Value of Shortest Path from Origin to Vertice', (n_vertices - 1), ':', cloud[n_vertices - 1])
+    print('Path from Vertice 0 to', (n_vertices - 1), '=>', predecessor_list(vertices), end='\n\n')
 
 
 def main():
@@ -372,5 +352,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# meta function
