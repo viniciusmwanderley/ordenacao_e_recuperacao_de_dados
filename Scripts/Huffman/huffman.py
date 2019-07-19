@@ -1,125 +1,156 @@
 from collections import Counter
-import heapq
+from os import path
+import argparse
+import pickle as pkl
 
-''' EQUAL: READ AND COUNT FREQUENCY -> WORKING '''
-
-LEFT = 2
-RIGHT = 3
-
-
-def frequency(text):
-    return Counter(text)
-
-
-def join_nodes(a, b):
-    frequency = a[0] + b[0]
-    parent_node = (frequency, None, a, b)
-    return parent_node
+parser = argparse.ArgumentParser()
+parser.add_argument('file', help='Arquivo de entrada', nargs='?', default=None)
+parser.add_argument(
+    'pickle_file', help='Arquivo com o objeto', nargs='?', default=None)
+parser.add_argument(
+    '-d', '--decode', help='Usado para realizar o decode', action='store_true')
+args = parser.parse_args()
 
 
-def prefixes(frequencies):
-    tree = []
-    for char, freq in frequencies.items():
-        heapq.heappush(tree, (freq, char))
+class Node():
 
-    while len(tree) > 1:
-        left = heapq.heappop(tree)
-        right = heapq.heappop(tree)
-        parent = join_nodes(left, right)
-        heapq.heappush(tree, parent)
-    root = tree[0]
-    return root
+    def __init__(self, label, value):
+        self.label = label
+        self.value = value
+        self.right = None
+        self.left = None
+
+    def __repr__(self):
+        return str((self.label, self.value, self.left, self.right))
 
 
-def dictionary(tree, symbol=''):
-    node = tree[1]
+class HuffmanTree():
 
-    if node is not None:
-        return {node: symbol or '0'}
-    else:
-        a = dictionary(tree[LEFT], symbol + '0')
-        b = dictionary(tree[RIGHT], symbol + '1')
-        a.update(b)
-        return a
+    def __init__(self):
+        self.nodes = []
+        self.head = None
+        self.dict = {}
+        self.reversed_dict = {}
 
+    def add_text(self, text):
+        count = Counter(list(text))
+        for key in count:
+            self.add_node(Node(key, count[key]))
 
-def code(text, dictionary):
-    return "".join([dictionary[letter] for letter in text])
+    def add_node(self, node):
+        self.nodes.append(node)
+        self.nodes.sort(key=lambda x: x.value, reverse=True)
 
+    def mount(self):
+        while len(self.nodes) > 1:
 
-def decode(codes, tree):
-    text = []
-    node = tree
-    for code in codes:
-        if node[1] is None:
-            if code == '0':
-                node = node[LEFT]
-            elif code == '1':
-                node = node[RIGHT]
-        if node[1] is not None:
-            text.append(node[1])
-            node = tree
+            node_left = self.nodes[-2]
+            node_right = self.nodes[-1]
 
-    return "".join(text)
+            node = Node(node_left.label + node_right.label,
+                        node_left.value + node_right.value)
 
+            node.left = node_left
+            node.right = node_right
 
-def pack(codes):
-    bytes = [chr(int(codes[i:i + 8], 2)) for i in range(0, len(codes), 8)]
-    return "".join(bytes)
+            self.nodes = self.nodes[:-2]
 
+            self.add_node(node)
 
-def unpack(text_pack, prefixes):
-    bytes = [bin(ord(byte))[2:] for byte in text_pack]
-    for i in range(0, len(bytes) - 1):
-        bytes[i] = bytes[i].zfill(8)
-    text_code = "".join(bytes)
-    text_unpack = decode(text_code, prefixes)
-    return text_unpack
+        self.head = self.nodes[0]
 
+        self.__mount_dict()
 
-def main():
+        self.__reverse_dict()
 
-    # Read text
-    # equal = open("generated.equal", encoding='latin1', newline='\n').read()
-    equal = 'abacaxi'
-    fib25 = open("generated.fib25", encoding='latin1', newline='\n').read()
+    def __mount_dict(self):
+        self.__nav_tree(self.head, '')
 
-    # Compute frequency
-    frequency_equal = frequency(equal)
-    print('FREQUENCY:', frequency_equal)
-    # frequency_fib25 = frequency(fib25)
+    def __nav_tree(self, node, code):
 
-    # Compute prefixe
-    prefix_equal = prefixes(frequency_equal)
-    print('PREFIX:', prefix_equal)
+        if node.left == node.right:
+            self.dict[node.label] = code
+        else:
 
-    # Compute dictionary
-    dictionary_equal = dictionary(prefix_equal)
-    print('DICTIONARY:', dictionary_equal)
+            if node.left:
+                self.__nav_tree(node.left, code + '0')
 
-    # Compute code
-    code_equal = code(equal, dictionary_equal)
-    print('CODE:', code_equal)
+            if node.right:
+                self.__nav_tree(node.right, code + '1')
 
-    # Compute decode
-    # decode_equal = decode(code_equal, prefixes)
-    # print('DECODE:', decode_equal)
+    def __reverse_dict(self):
 
-    # Compute pack
-    pack_equal = pack(code_equal)
-    print('PACK:', pack_equal)
+        self.reversed_dict = {self.dict[key]: key for key in self.dict}
 
-    # Compute unpack
-    unpack_equal = unpack(pack_equal, prefix_equal)
-    print('UNPACK:', unpack_equal)
+    def encode(self, text):
+
+        result = ''
+
+        for letter in list(text):
+
+            if self.dict.get(letter):
+                result += self.dict[letter]
+            else:
+                result += '?'
+
+        return result
+
+    def decode(self, code):
+
+        result = ''
+        acc = ''
+
+        code = [c for c in code if c.isdigit()]
+
+        for number in code:
+            acc += number
+
+            if self.reversed_dict.get(acc):
+                result += self.reversed_dict[acc]
+                acc = ''
+
+        return result
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        # verifica se é uma arquivo
+        if args.file:
+            with open(args.file, encoding='latin1', newline='\n') as in_file:
+                text = in_file.read()
 
+                # verifica se é para realizar o decode
+                if args.decode:
+                    tree = pkl.load(open(args.pickle_file, 'rb'))
+                    print(tree.decode(text))
 
-''' TEST: WRITE BYTE '''
-# f = open("teste.bin", "wb")
-# f.write(bytearray((0, 0, 255, 255, 128, 128)))
-# f.close()
-# print(open("teste.bin", encoding="latin1").read())
+                else:
+                    # realiza o encode do texto e salva o objeto
+                    tree = HuffmanTree()
+                    tree.add_text(text)
+                    tree.mount()
+
+                    print(tree.encode(text))
+
+                    # salva o objeto
+                    pkl.dump(tree, open(
+                        path.splitext(args.file)[-2] + '.code', 'wb'))
+        else:
+            # modo interativo
+            while True:
+                text = input()
+
+                if len(text) > 0:
+                    characters = list(text)
+                    tree = HuffmanTree()
+                    tree.add_text(text)
+                    tree.mount()
+                    # print(tree.dict)
+                    code = tree.encode(text)
+                    print(code)
+                    # print(tree.decode(code))
+
+                else:
+                    raise EOFError
+    except EOFError:
+        pass
