@@ -108,21 +108,34 @@ class HuffmanTree():
 
 if __name__ == '__main__':
     try:
-        # verifica se é uma arquivo
-        with open(args.file, encoding='latin1', newline='\n') as in_file:
-            text = in_file.read()
 
-            tree = HuffmanTree()
-            tree.add_text(text)
-            tree.mount()
+        text = open(args.file, encoding='latin1', newline='\n', mode='r').read()
 
-            # árvore codificada
-            tree_cod = tree.encode(text)
-            print('tree_cod:', tree_cod)
+        tree = HuffmanTree()
+        tree.add_text(text)
+        tree.mount()
 
-            # árvore decodificada
-            tree_decod = tree.decode(tree_cod)
-            print('tree_decod:', tree_decod)
+        # print('nodes', tree.nodes)
+        # print('head', tree.head)
+        # print('dict', tree.dict)
+        # print('reversed_ dict', tree.reversed_dict)
+
+        # árvore codificada
+        tree_cod = tree.encode(text)
+        print('tree_cod:', tree_cod)
+
+        # Salva codificado em arquivo
+
+        # with open(args.file + '_encoded.txt', newline='\n', mode='w') as w:
+        #     w.write(tree_cod)
+
+        # árvore decodificada
+        tree_decod = tree.decode(tree_cod)
+        # print('tree_decod:', tree_decod)
+
+        # Salva decodificado em arquivo
+        with open(args.file + '_decoded.txt', newline='\n', mode='w') as w:
+            w.write(tree_decod)
 
     except EOFError:
         pass
