@@ -1,5 +1,7 @@
 from collections import Counter
+import pickle as pkl
 import argparse
+import bitarray
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file', default=None)
@@ -137,21 +139,37 @@ if __name__ == '__main__':
         # print('reversed_ dict', tree.reversed_dict)
 
         # árvore codificada
-        tree_cod = tree.encode(text)
-        print('tree_cod:', tree_cod)
+        # tree.encode(text)
+        # print('tree_cod:', tree_cod)
 
+        string_encoded = tree.encode(text)
+
+        bits_encoded = bitarray.bitarray(string_encoded)
+        # print(bits_encoded)
+
+        # print(tree.dict)
+        # print(tree.reversed_dict)
         # Salva codificado em arquivo
+        with open(args.file + '.encode', 'wb') as w:
+            bits_encoded.tofile(w)
 
-        # with open(args.file + '_encoded.txt', newline='\n', mode='w') as w:
-        #     w.write(tree_cod)
+        bits_to_decode = bitarray.bitarray()
 
-        # árvore decodificada
-        tree_decod = tree.decode(tree_cod)
-        # print('tree_decod:', tree_decod)
+        with open(args.file + '.encode', 'rb') as r:
+            bits_to_decode.fromfile(r)
 
-        # Salva decodificado em arquivo
-        with open(args.file + '_decoded.txt', newline='\n', mode='w') as w:
-            w.write(tree_decod)
+        # print(tree.decode(str(bits_to_decode)))
+
+        with open(args.file + '.decode', mode='w') as w:
+            w.write(tree.decode(str(bits_to_decode)))
+        # # árvore decodificada
+        # tree = pkl.load(open(args.file + '.encode', 'rb'))
+        # tree_decod = tree.decode(text)
+        # print(tree_decod)
+
+        # # Salva decodificado em arquivo
+        # with open(args.file + '.decode', mode='wb') as w:
+        #     w.write(tree_decod)
 
     except EOFError:
         pass
