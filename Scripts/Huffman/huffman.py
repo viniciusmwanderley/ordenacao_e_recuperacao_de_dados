@@ -1,5 +1,6 @@
 from collections import Counter
-import pickle as pkl
+# import pickle as pkl
+import filecmp
 import argparse
 import bitarray
 
@@ -133,43 +134,33 @@ if __name__ == '__main__':
         tree.add_text(text)
         tree.mount()
 
-        # print('nodes', tree.nodes)
-        # print('head', tree.head)
-        # print('dict', tree.dict)
-        # print('reversed_ dict', tree.reversed_dict)
-
-        # árvore codificada
-        # tree.encode(text)
-        # print('tree_cod:', tree_cod)
-
         string_encoded = tree.encode(text)
-
         bits_encoded = bitarray.bitarray(string_encoded)
-        # print(bits_encoded)
 
+        # See Dicts
         # print(tree.dict)
         # print(tree.reversed_dict)
-        # Salva codificado em arquivo
+
+        # Save file encoded
         with open(args.file + '.encode', 'wb') as w:
             bits_encoded.tofile(w)
 
+        # Open file encoded
         bits_to_decode = bitarray.bitarray()
-
         with open(args.file + '.encode', 'rb') as r:
             bits_to_decode.fromfile(r)
 
-        # print(tree.decode(str(bits_to_decode)))
-
-        with open(args.file + '.decode', mode='w') as w:
+        # Save file decoded
+        with open(args.file + '.decode', 'w') as w:
             w.write(tree.decode(str(bits_to_decode)))
-        # # árvore decodificada
-        # tree = pkl.load(open(args.file + '.encode', 'rb'))
-        # tree_decod = tree.decode(text)
-        # print(tree_decod)
 
-        # # Salva decodificado em arquivo
-        # with open(args.file + '.decode', mode='wb') as w:
-        #     w.write(tree_decod)
+        # Tests
+        a = Counter(text)
+        b = Counter(tree.decode(str(bits_to_decode)))
+
+        print('Dictionary of Counts are equal?', a == b)
+
+        print('Check if files are equal:', filecmp.cmp(args.file, args.file + '.decode', shallow=False))
 
     except EOFError:
         pass
