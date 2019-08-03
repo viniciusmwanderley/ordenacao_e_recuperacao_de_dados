@@ -50,3 +50,11 @@ Aulas teóricas e práticas durante o curso, com foco na parte prática
 ### Aula 06
 
 * Algoritmo de Huffman
+
+### Aula 07
+
+* Árvore B
+
+### Aula 08
+
+* Tabela Hash
