@@ -88,15 +88,13 @@ def countSort(a, tam_array):
     return b
 
 
-file = '../Sort_Tests/num.1000.1.in'
+file = 'num.1000.1.in'
 
 values = get_values_from_matrix(file)
 tam_array = values.pop()
 start = time.time()
 countSort(values, tam_array)
 print('Count Sort Time(s):', time.time() - start)
-
-file = '../Sort_Tests/num.1000.1.in'
 
 values = get_values_from_matrix(file)
 num_array = values.pop()
